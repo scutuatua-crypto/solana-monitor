@@ -1,4 +1,3 @@
-# solana-monitor
 # 🌊 Solana Wallet Monitor + Reward System
 
 Monitor real-time SOL balance, SPL tokens, transactions และ reward tiers
