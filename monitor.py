@@ -13,7 +13,7 @@ from typing import Optional
 # ─── CONFIG ───────────────────────────────────────────────
 
 WALLET_ADDRESS = “4b2Zkq2Lvt15v9PXeNmbkwMZbDfUXbgdmXd4x2j6cWxX”
-SOLSCAN_API_KEY = os.environ.get("SOLSCAN_API_KEY")
+SOLSCAN_API_KEY = “YOUR_NEW_API_KEY_HERE”  # ใส่ key ใหม่หลัง regenerate
 SOLSCAN_BASE    = “https://pro-api.solscan.io/v2.0”
 RPC_URL         = “https://api.mainnet-beta.solana.com”  # fallback
 
