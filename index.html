@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solana Monitor</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sol-purple: #00C2FF;
+    --sol-green: #00E5FF;
+    --sol-blue: #0088FF;
+    --bg: #000000;
+    --card: #050510;
+    --card2: #080818;
+    --border: rgba(0,194,255,0.2);
+    --text: #ffffff;
+    --dim: #5588aa;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+/* BG effect */
+body::before {
+content: ‘’;
+position: fixed;
+top: -200px; left: -200px;
+width: 600px; height: 600px;
+background: radial-gradient(circle, rgba(0,194,255,0.12) 0%, transparent 70%);
+pointer-events: none;
+z-index: 0;
+}
+body::after {
+content: ‘’;
+position: fixed;
+bottom: -200px; right: -200px;
+width: 600px; height: 600px;
+background: radial-gradient(circle, rgba(0,136,255,0.08) 0%, transparent 70%);
+pointer-events: none;
+z-index: 0;
+}
+
+/* HEADER */
+header {
+position: relative; z-index: 10;
+display: flex; align-items: center; justify-content: space-between;
+padding: 20px 28px;
+border-bottom: 1px solid var(–border);
+background: rgba(10,10,15,0.8);
+backdrop-filter: blur(12px);
+}
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-icon {
+width: 36px; height: 36px;
+background: linear-gradient(135deg, #0088FF, #00E5FF);
+border-radius: 10px;
+display: flex; align-items: center; justify-content: center;
+font-size: 18px;
+}
+.logo-text { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
+.logo-text span { color: var(–sol-green); }
+
+.live-badge {
+display: flex; align-items: center; gap: 6px;
+background: rgba(20,241,149,0.1);
+border: 1px solid rgba(20,241,149,0.3);
+border-radius: 20px;
+padding: 6px 14px;
+font-size: 12px; font-weight: 700;
+color: var(–sol-green);
+letter-spacing: 1px;
+font-family: ‘JetBrains Mono’, monospace;
+}
+.live-dot {
+width: 7px; height: 7px;
+background: var(–sol-green);
+border-radius: 50%;
+animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+0%,100% { opacity:1; transform:scale(1); }
+50% { opacity:0.4; transform:scale(0.8); }
+}
+
+/* TICKER */
+.ticker-wrap {
+overflow: hidden;
+background: rgba(0,194,255,0.06);
+border-bottom: 1px solid var(–border);
+padding: 10px 0;
+position: relative; z-index: 10;
+}
+.ticker {
+display: flex; gap: 48px;
+animation: ticker 25s linear infinite;
+white-space: nowrap;
+}
+.ticker-item {
+display: flex; align-items: center; gap: 8px;
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 13px;
+}
+.ticker-name { color: var(–dim); }
+.ticker-price { color: var(–text); font-weight: 600; }
+.ticker-up { color: var(–sol-green); }
+.ticker-down { color: #ff6b6b; }
+@keyframes ticker {
+0% { transform: translateX(0); }
+100% { transform: translateX(-50%); }
+}
+
+/* MAIN */
+main {
+position: relative; z-index: 10;
+max-width: 900px;
+margin: 0 auto;
+padding: 28px 20px;
+}
+
+/* WALLET CARD */
+.wallet-card {
+background: linear-gradient(135deg, rgba(0,136,255,0.15), rgba(0,229,255,0.06));
+border: 1px solid var(–border);
+border-radius: 20px;
+padding: 28px;
+margin-bottom: 20px;
+display: flex; align-items: center; justify-content: space-between;
+flex-wrap: wrap; gap: 16px;
+}
+.wallet-label { font-size: 11px; color: var(–dim); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+.wallet-address {
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 14px; color: var(–sol-blue);
+word-break: break-all;
+}
+.wallet-time {
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 13px; color: var(–dim);
+text-align: right;
+}
+.wallet-time span { color: var(–sol-green); font-size: 16px; }
+
+/* STATS GRID */
+.stats-grid {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 16px;
+margin-bottom: 20px;
+}
+@media(max-width:600px) { .stats-grid { grid-template-columns: 1fr; } }
+
+.stat-card {
+background: var(–card);
+border: 1px solid var(–border);
+border-radius: 16px;
+padding: 22px;
+transition: border-color 0.2s, transform 0.2s;
+}
+.stat-card:hover { border-color: rgba(153,69,255,0.4); transform: translateY(-2px); }
+.stat-label { font-size: 11px; color: var(–dim); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+.stat-value {
+font-size: 28px; font-weight: 800;
+background: linear-gradient(135deg, var(–sol-green), var(–sol-blue));
+-webkit-background-clip: text; -webkit-text-fill-color: transparent;
+line-height: 1;
+}
+.stat-sub { font-size: 12px; color: var(–dim); margin-top: 6px; font-family: ‘JetBrains Mono’, monospace; }
+
+/* TIER BADGE */
+.tier-card {
+background: var(–card);
+border: 1px solid var(–border);
+border-radius: 16px;
+padding: 22px 28px;
+margin-bottom: 20px;
+display: flex; align-items: center; justify-content: space-between;
+flex-wrap: wrap; gap: 12px;
+}
+.tier-left { display: flex; align-items: center; gap: 14px; }
+.tier-icon { font-size: 36px; }
+.tier-info {}
+.tier-label { font-size: 11px; color: var(–dim); letter-spacing: 2px; text-transform: uppercase; }
+.tier-name { font-size: 22px; font-weight: 800; color: var(–sol-green); }
+.tier-bar-wrap { flex: 1; min-width: 200px; }
+.tier-bar-label { display: flex; justify-content: space-between; font-size: 11px; color: var(–dim); margin-bottom: 6px; font-family: ‘JetBrains Mono’, monospace; }
+.tier-bar-bg { background: rgba(255,255,255,0.08); border-radius: 10px; height: 8px; overflow: hidden; }
+.tier-bar-fill {
+height: 100%;
+background: linear-gradient(90deg, var(–sol-purple), var(–sol-green));
+border-radius: 10px;
+transition: width 1s ease;
+}
+
+/* SECTIONS */
+.section-title {
+font-size: 13px; color: var(–dim);
+letter-spacing: 2px; text-transform: uppercase;
+margin-bottom: 12px;
+display: flex; align-items: center; gap: 8px;
+}
+.section-title::after {
+content: ‘’; flex: 1;
+height: 1px; background: var(–border);
+}
+
+/* TOKENS */
+.tokens-grid {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+gap: 12px;
+margin-bottom: 20px;
+}
+.token-card {
+background: var(–card2);
+border: 1px solid var(–border);
+border-radius: 14px;
+padding: 16px;
+transition: border-color 0.2s;
+}
+.token-card:hover { border-color: rgba(20,241,149,0.3); }
+.token-sym { font-size: 16px; font-weight: 700; color: var(–sol-green); }
+.token-amt { font-family: ‘JetBrains Mono’, monospace; font-size: 14px; color: var(–text); margin-top: 4px; }
+.token-usd { font-size: 12px; color: var(–dim); margin-top: 2px; }
+.no-data { color: var(–dim); font-size: 14px; padding: 20px 0; text-align: center; }
+
+/* TRANSACTIONS */
+.tx-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.tx-row {
+background: var(–card2);
+border: 1px solid var(–border);
+border-radius: 12px;
+padding: 14px 18px;
+display: flex; align-items: center; gap: 14px;
+transition: border-color 0.2s;
+}
+.tx-row:hover { border-color: rgba(0,194,255,0.3); }
+.tx-status { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.tx-ok { background: var(–sol-green); box-shadow: 0 0 8px rgba(20,241,149,0.5); }
+.tx-err { background: #ff6b6b; }
+.tx-sig { font-family: ‘JetBrains Mono’, monospace; font-size: 13px; color: var(–sol-blue); flex: 1; }
+.tx-time { font-size: 12px; color: var(–dim); font-family: ‘JetBrains Mono’, monospace; }
+.tx-fee { font-size: 12px; color: var(–dim); font-family: ‘JetBrains Mono’, monospace; }
+
+/* REFRESH BTN */
+.refresh-wrap { text-align: center; padding: 10px 0 20px; }
+.refresh-btn {
+background: linear-gradient(135deg, #0055CC, #00C2FF);
+border: none; border-radius: 14px;
+color: #fff; font-family: ‘Syne’, sans-serif;
+font-size: 15px; font-weight: 700;
+padding: 14px 40px; cursor: pointer;
+transition: opacity 0.2s, transform 0.2s;
+letter-spacing: 0.5px;
+}
+.refresh-btn:hover { opacity: 0.85; transform: translateY(-2px); }
+.refresh-btn:active { transform: translateY(0); }
+.update-time { font-size: 12px; color: var(–dim); margin-top: 8px; font-family: ‘JetBrains Mono’, monospace; }
+
+/* ALERT */
+.alert-box {
+background: rgba(20,241,149,0.08);
+border: 1px solid rgba(20,241,149,0.3);
+border-radius: 14px;
+padding: 14px 18px;
+margin-bottom: 20px;
+font-size: 14px;
+color: var(–sol-green);
+display: none;
+}
+.alert-box.show { display: block; }
+
+/* LOADING */
+.loading { color: var(–dim); font-size: 13px; font-family: ‘JetBrains Mono’, monospace; }
+.spin { display: inline-block; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🌊</div>
+    <div class="logo-text">Sol<span>Monitor</span></div>
+  </div>
+  <div class="live-badge">
+    <div class="live-dot"></div>
+    LIVE
+  </div>
+</header>
+
+<!-- TICKER -->
+
+<div class="ticker-wrap">
+  <div class="ticker" id="ticker">
+    <div class="ticker-item"><span class="ticker-name">SOL</span><span class="ticker-price" id="sol-price">---</span><span class="ticker-up" id="sol-change">---</span></div>
+    <div class="ticker-item"><span class="ticker-name">BTC</span><span class="ticker-price" id="btc-price">---</span><span id="btc-change">---</span></div>
+    <div class="ticker-item"><span class="ticker-name">ETH</span><span class="ticker-price" id="eth-price">---</span><span id="eth-change">---</span></div>
+    <div class="ticker-item"><span class="ticker-name">BNB</span><span class="ticker-price" id="bnb-price">---</span><span id="bnb-change">---</span></div>
+    <div class="ticker-item"><span class="ticker-name">SOL</span><span class="ticker-price" id="sol-price2">---</span><span class="ticker-up" id="sol-change2">---</span></div>
+    <div class="ticker-item"><span class="ticker-name">BTC</span><span class="ticker-price" id="btc-price2">---</span><span id="btc-change2">---</span></div>
+    <div class="ticker-item"><span class="ticker-name">ETH</span><span class="ticker-price" id="eth-price2">---</span><span id="eth-change2">---</span></div>
+    <div class="ticker-item"><span class="ticker-name">BNB</span><span class="ticker-price" id="bnb-price2">---</span><span id="bnb-change2">---</span></div>
+  </div>
+</div>
+
+<main>
+
+  <!-- ALERT -->
+
+  <div class="alert-box" id="alert-box">🔔 <span id="alert-msg"></span></div>
+
+  <!-- WALLET -->
+
+  <div class="wallet-card">
+    <div>
+      <div class="wallet-label">Wallet Address</div>
+      <div class="wallet-address">4b2Zkq2Lvt15v9PXeN...j6cWxX</div>
+    </div>
+    <div class="wallet-time">
+      <div style="font-size:11px;color:var(--dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px">Last Update</div>
+      <span id="update-time">--:--:--</span>
+    </div>
+  </div>
+
+  <!-- STATS -->
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">SOL Balance</div>
+      <div class="stat-value" id="sol-balance">---</div>
+      <div class="stat-sub" id="sol-usd">≈ $--- USD</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">SPL Tokens</div>
+      <div class="stat-value" id="token-count">---</div>
+      <div class="stat-sub">token types</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Transactions</div>
+      <div class="stat-value" id="tx-count">---</div>
+      <div class="stat-sub">recent txs</div>
+    </div>
+  </div>
+
+  <!-- TIER -->
+
+  <div class="tier-card">
+    <div class="tier-left">
+      <div class="tier-icon" id="tier-icon">🥉</div>
+      <div class="tier-info">
+        <div class="tier-label">Reward Tier</div>
+        <div class="tier-name" id="tier-name">Bronze Holder</div>
+      </div>
+    </div>
+    <div class="tier-bar-wrap">
+      <div class="tier-bar-label">
+        <span id="tier-current">0 SOL</span>
+        <span id="tier-next">Next: 1 SOL</span>
+      </div>
+      <div class="tier-bar-bg">
+        <div class="tier-bar-fill" id="tier-bar" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOKENS -->
+
+  <div class="section-title">SPL Tokens</div>
+  <div class="tokens-grid" id="tokens-grid">
+    <div class="no-data loading"><span class="spin">⟳</span> Loading...</div>
+  </div>
+
+  <!-- TRANSACTIONS -->
+
+  <div class="section-title">Recent Transactions</div>
+  <div class="tx-list" id="tx-list">
+    <div class="no-data loading"><span class="spin">⟳</span> Loading...</div>
+  </div>
+
+  <!-- REFRESH -->
+
+  <div class="refresh-wrap">
+    <button class="refresh-btn" onclick="fetchAll()">⟳ Refresh Now</button>
+    <div class="update-time" id="next-update">Auto-refresh in 30s</div>
+  </div>
+
+</main>
+
+<script>
+const WALLET = "4b2Zkq2Lvt15v9PXeNmbkwMZbDfUXbgdmXd4x2j6cWxX";
+const RPC = "https://api.mainnet-beta.solana.com";
+let prevSol = null;
+let countdown = 30;
+
+const TIERS = [
+  { min:0,    max:1,    label:"Bronze Holder",   icon:"🥉", nextSol:1 },
+  { min:1,    max:10,   label:"Silver Holder",   icon:"🥈", nextSol:10 },
+  { min:10,   max:100,  label:"Gold Holder",     icon:"🥇", nextSol:100 },
+  { min:100,  max:1000, label:"Platinum Holder", icon:"💎", nextSol:1000 },
+  { min:1000, max:9e18, label:"Diamond Holder",  icon:"👑", nextSol:null },
+];
+
+function getTier(sol) {
+  return TIERS.find(t => sol >= t.min && sol < t.max) || TIERS[4];
+}
+
+async function rpc(method, params) {
+  try {
+    const r = await fetch(RPC, {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({jsonrpc:"2.0",id:1,method,params})
+    });
+    return (await r.json()).result;
+  } catch { return null; }
+}
+
+async function fetchPrices() {
+  try {
+    const r = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=solana,bitcoin,ethereum,binancecoin&vs_currencies=usd&include_24hr_change=true");
+    const d = await r.json();
+    const fmt = (n) => n >= 1000 ? "$" + n.toLocaleString() : "$" + n.toFixed(2);
+    const chg = (n) => (n >= 0 ? "+" : "") + n.toFixed(2) + "%";
+    const cls = (n) => n >= 0 ? "ticker-up" : "ticker-down";
+
+    ["sol-price","sol-price2"].forEach(id => document.getElementById(id).textContent = fmt(d.solana.usd));
+    ["btc-price","btc-price2"].forEach(id => document.getElementById(id).textContent = fmt(d.bitcoin.usd));
+    ["eth-price","eth-price2"].forEach(id => document.getElementById(id).textContent = fmt(d.ethereum.usd));
+    ["bnb-price","bnb-price2"].forEach(id => document.getElementById(id).textContent = fmt(d.binancecoin.usd));
+
+    const pairs = [
+      ["sol-change","sol-change2", d.solana.usd_24h_change],
+      ["btc-change","btc-change2", d.bitcoin.usd_24h_change],
+      ["eth-change","eth-change2", d.ethereum.usd_24h_change],
+      ["bnb-change","bnb-change2", d.binancecoin.usd_24h_change],
+    ];
+    pairs.forEach(([id1,id2,val]) => {
+      [id1,id2].forEach(id => {
+        const el = document.getElementById(id);
+        el.textContent = chg(val);
+        el.className = cls(val);
+      });
+    });
+
+    return d.solana.usd;
+  } catch { return null; }
+}
+
+async function fetchWallet() {
+  const r = await rpc("getBalance", [WALLET]);
+  return r ? r.value / 1e9 : 0;
+}
+
+async function fetchTokens() {
+  const r = await rpc("getTokenAccountsByOwner", [
+    WALLET,
+    {programId:"TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"},
+    {encoding:"jsonParsed"}
+  ]);
+  if (!r) return [];
+  return r.value
+    .map(a => {
+      const i = a.account.data.parsed.info;
+      return { symbol: "TOKEN", mint: i.mint, amount: parseFloat(i.tokenAmount.uiAmountString||0) };
+    })
+    .filter(t => t.amount > 0);
+}
+
+async function fetchTxs() {
+  const r = await rpc("getSignaturesForAddress", [WALLET, {limit:5}]);
+  return r || [];
+}
+
+async function fetchAll() {
+  document.getElementById("update-time").textContent = new Date().toLocaleTimeString();
+
+  const [solPrice, sol, tokens, txs] = await Promise.all([
+    fetchPrices(), fetchWallet(), fetchTokens(), fetchTxs()
+  ]);
+
+  // Alert
+  if (prevSol !== null && Math.abs(sol - prevSol) > 0.000001) {
+    const diff = sol - prevSol;
+    const box = document.getElementById("alert-box");
+    document.getElementById("alert-msg").textContent =
+      (diff > 0 ? "📈 SOL เข้า +" : "📉 SOL ออก ") + diff.toFixed(6) + " SOL";
+    box.classList.add("show");
+    setTimeout(() => box.classList.remove("show"), 8000);
+  }
+  prevSol = sol;
+
+  // Stats
+  document.getElementById("sol-balance").textContent = sol.toFixed(4);
+  document.getElementById("sol-usd").textContent = solPrice ? "≈ $" + (sol * solPrice).toFixed(2) + " USD" : "";
+  document.getElementById("token-count").textContent = tokens.length;
+  document.getElementById("tx-count").textContent = txs.length;
+
+  // Tier
+  const tier = getTier(sol);
+  document.getElementById("tier-icon").textContent = tier.icon;
+  document.getElementById("tier-name").textContent = tier.label;
+  document.getElementById("tier-current").textContent = sol.toFixed(4) + " SOL";
+  if (tier.nextSol) {
+    const pct = Math.min((sol / tier.nextSol) * 100, 100);
+    document.getElementById("tier-next").textContent = "Next: " + tier.nextSol + " SOL";
+    document.getElementById("tier-bar").style.width = pct + "%";
+  } else {
+    document.getElementById("tier-next").textContent = "MAX TIER 👑";
+    document.getElementById("tier-bar").style.width = "100%";
+  }
+
+  // Tokens
+  const tg = document.getElementById("tokens-grid");
+  if (tokens.length === 0) {
+    tg.innerHTML = '<div class="no-data">No SPL tokens found</div>';
+  } else {
+    tg.innerHTML = tokens.slice(0,12).map(t => `
+      <div class="token-card">
+        <div class="token-sym">${t.symbol}</div>
+        <div class="token-amt">${t.amount.toLocaleString(undefined,{maximumFractionDigits:4})}</div>
+        <div class="token-usd">${t.mint.slice(0,8)}...</div>
+      </div>`).join("");
+  }
+
+  // Txs
+  const tl = document.getElementById("tx-list");
+  if (txs.length === 0) {
+    tl.innerHTML = '<div class="no-data">No transactions found</div>';
+  } else {
+    tl.innerHTML = txs.map(tx => {
+      const ok = !tx.err;
+      const ts = tx.blockTime ? new Date(tx.blockTime*1000).toLocaleString() : "";
+      return `<div class="tx-row">
+        <div class="tx-status ${ok?"tx-ok":"tx-err"}"></div>
+        <div class="tx-sig">${tx.signature.slice(0,18)}...</div>
+        <div class="tx-time">${ts}</div>
+      </div>`;
+    }).join("");
+  }
+}
+
+// Countdown
+setInterval(() => {
+  countdown--;
+  document.getElementById("next-update").textContent = "Auto-refresh in " + countdown + "s";
+  if (countdown <= 0) { countdown = 30; fetchAll(); }
+}, 1000);
+
+fetchAll();
+</script>
+
+</body>
+</html>
