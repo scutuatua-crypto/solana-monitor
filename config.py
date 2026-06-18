@@ -1,15 +1,14 @@
 import os
 
-# ─── Wallet ────────────────────────────────────────────────
+# ─── Global ────────────────────────────────────────────────
+POLL_INTERVAL = 15
 
-WALLET_ADDRESS = “4b2Zkq2Lvt15v9PXeNmbkwMZbDfUXbgdmXd4x2j6cWxX”
+# ─── Solana Config ─────────────────────────────────────────
+SOL_WALLET = "4b2Zkq2Lvt15v9PXeNmbkwMZbDfUXbgdmXd4x2j6cWxX"
+SOLSCAN_API_KEY = os.environ.get("SOLSCAN_API_KEY")
+SOLSCAN_BASE = "https://pro-api.solscan.io/v2.0"
 
-# ─── API ───────────────────────────────────────────────────
-
-SOLSCAN_API_KEY = os.environ.get(“SOLSCAN_API_KEY”)
-SOLSCAN_BASE    = “https://pro-api.solscan.io/v2.0”
-RPC_URL         = “https://api.mainnet-beta.solana.com”
-
-# ─── Monitor ───────────────────────────────────────────────
-
-POLL_INTERVAL = 15  # วินาที
+# ─── Bitcoin Config ────────────────────────────────────────
+BTC_WALLET = "bc1qtruve79ssu0ncnd99hma4734qnjqpfsr9g4ut0"
+UNISAT_API_KEY = os.environ.get("UNISAT_API_KEY") # อย่าลืมไปตั้งใน GitHub Secrets
+UNISAT_BASE = "https://open-api.unisat.io/v1"
