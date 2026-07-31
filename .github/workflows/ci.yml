@@ -13,6 +13,10 @@ jobs:
         with:
           python-version: '3.10'
 
+      - name: Syntax Check (catch smart quotes / bad indentation early)
+        run: |
+          find . -name "*.py" -print0 | xargs -0 -n1 python -m py_compile
+
       - name: Run Coverage Test
         run: |
           pip install pytest pytest-cov
